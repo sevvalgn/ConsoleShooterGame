@@ -1,3 +1,5 @@
+<img width="1518" height="1160" alt="Ekran görüntüsü 2026-07-11 003056" src="https://github.com/user-attachments/assets/f65e4e8d-429d-4115-baeb-6eb1cfc51074" />
+<img width="1026" height="498" alt="Ekran görüntüsü 2026-07-11 002716" src="https://github.com/user-attachments/assets/61d50746-cd7a-4eb4-ae91-9fbcc14def98" />
 # Console Shooter Game
 
 A console-based shooter game developed in C#.
