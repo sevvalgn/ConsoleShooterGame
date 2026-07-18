@@ -1,58 +1,72 @@
-<img width="1518" height="1160" alt="Ekran görüntüsü 2026-07-11 003056" src="https://github.com/user-attachments/assets/f65e4e8d-429d-4115-baeb-6eb1cfc51074" />
-<img width="1026" height="498" alt="Ekran görüntüsü 2026-07-11 002716" src="https://github.com/user-attachments/assets/61d50746-cd7a-4eb4-ae91-9fbcc14def98" />
 # Console Shooter Game
 
-A console-based shooter game developed in C#.
+A console-based shooter game built with C#.
 
-## Overview
+## About
 
-This project was built as a personal learning challenge. The goal was not only to create a game, but also to use a single project to learn new concepts by solving real problems during development.
+I created this project to challenge myself and learn new concepts by building something larger than a standard console application.
 
-Players can choose a character, dodge enemy bullets by jumping, attack the enemy, earn score, and compete on a leaderboard.
+The game allows players to log in, choose a character, fight an enemy, avoid incoming bullets by jumping, earn score, and compete on a persistent leaderboard.
+
+Most of the systems in this project were implemented while solving problems that appeared during development. Whenever I encountered something I did not know how to build, I researched it and applied it directly to the project.
 
 ## Features
 
 - Character selection
 - Different character stats
 - Shooting system
-- Enemy AI attacks
+- Enemy projectiles
 - Jump mechanic
 - Collision detection
 - Score system
-- Leaderboard
+- Login system
+- Persistent leaderboard
 - Real-time keyboard input
 - Coordinate-based movement
+- MySQL integration
 
-## Skills Practiced
+## What I Practiced
 
-### Strengthened
+### OOP Concepts
 
-- Object-Oriented Programming
 - Inheritance
 - Polymorphism
 - Constructor chaining
 - Class design
 
-### Learned
+### New Concepts
 
 - Game loops
 - Collision detection
 - Coordinate systems
 - State management
-- Real-time input handling
 - Projectile systems
+- Real-time input handling
 - Time-based mechanics
+- SQL fundamentals
+- Database design
+- C# and MySQL integration<img width="958" height="350" alt="Ekran görüntüsü 2026-07-19 004306" src="https://github.com/user-attachments/assets/95b7da07-7d96-418d-810e-8456ccf6edda" />
+<img width="1506" height="1428" alt="Ekran görüntüsü 2026-07-19 003914" src="https://github.com/user-attachments/assets/7c23b40b-ba25-4c2c-b4f9-8b7974d8732e" />
+
 
 ## Roadmap
 
 ✅ Console shooter game
 
-🔜 Add persistent data storage
+✅ Login system
+
+✅ Database integration
+
+✅ Persistent leaderboard
 
 🔜 Move the project to a graphical user interface
 
-🔜 Build an online leaderboard
+🔜 Improve project architecture and code organization
+
+🔜 Build an online leaderboard system
 
 ## Purpose
 
-This repository documents my progress from building console applications to working with databases, user interfaces, and online systems using the same project as a learning platform.
+The purpose of this project is to continue learning software development through a single project.
+
+My goal is to gradually evolve this project from a console game into an application that includes databases, graphical interfaces, and online functionality while improving my understanding of C# along the way.
