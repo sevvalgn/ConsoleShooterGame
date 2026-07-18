@@ -1,5 +1,7 @@
-﻿using System.Collections.Specialized;
+﻿using MySqlConnector;
+using System.Collections.Specialized;
 using System.Diagnostics.Metrics;
+using System.Numerics;
 
 namespace PlayerRankingSystem
 {
@@ -114,7 +116,6 @@ namespace PlayerRankingSystem
     internal class Program
     {
         static List<Player> characterlist = new List<Player>();
-        static Dictionary<Player, int> leaderboard = new Dictionary<Player, int>();
         static void Main(string[] args)
         {
             Player Fairy = new Fairy("Fairy", 0, 0);
@@ -123,6 +124,8 @@ namespace PlayerRankingSystem
             characterlist.Add(Fairy);
             characterlist.Add(Soldier);
             characterlist.Add(OldMan);
+
+            string playerName = LogIn();
 
             while (true)
             {
@@ -139,7 +142,9 @@ namespace PlayerRankingSystem
 
                 if (choice == "1")
                 {
-                    StarttheGame();
+                    Showcharacterlist();
+                    Player player = CharacterChoice(playerName);
+                    StarttheGame(playerName,player);
                 }
                 else if (choice == "2")
                 {
@@ -151,42 +156,9 @@ namespace PlayerRankingSystem
                     break;
                 }
             }
-
-
-            static void StarttheGame()
+           
+            static int StarttheGame(string playerName, Player player)
             {
-                Player player;
-                //Choosing a character
-                Showcharacterlist();
-                Console.WriteLine("Which character do you want to play?");
-                string choice;
-                do
-                {
-                    Console.WriteLine("Enter your choice (1,2 or 3): ");
-                    choice = Console.ReadLine();
-
-                }
-                while (string.IsNullOrWhiteSpace(choice) || choice != "1" && choice != "2" && choice != "3");
-                string playerName;
-                do
-                {
-                    Console.WriteLine("Please name your player.");
-                    playerName = Console.ReadLine();
-                }
-                while (string.IsNullOrEmpty(playerName));
-
-                if (choice == "1")
-                {
-                    player = new Fairy(playerName, 2, 23);
-                }
-                else if (choice == "2")
-                {
-                    player = new Soldier(playerName, 2, 23);
-                }
-                else
-                {
-                    player = new OldMan(playerName, 2, 23);
-                }
 
                 Console.WriteLine($"Welcome {playerName}!");
                 Console.WriteLine("You must defeat the enemy by damaging him and avoiding his shots.");
@@ -194,9 +166,9 @@ namespace PlayerRankingSystem
                 Console.WriteLine("                               START                                  ");
                 Console.WriteLine("--------------------------------------------------------------------");
 
-                Player Enemy = new Enemy("Enemy", 20, 23);
-                var Bullet = new Bullet(19, 23, "*");
-                var PlayerBullet = new Bullet(8, 23, ">");
+                Player Enemy = new Enemy("Enemy", 20, 30);
+                var Bullet = new Bullet(19, 30, "*");
+                var PlayerBullet = new Bullet(8, 30, ">");
                 Console.WriteLine("An enemy appears!");
                 Console.WriteLine("Enter 'space' to attack");
                 int enemyHealth = Enemy.Health();
@@ -204,6 +176,7 @@ namespace PlayerRankingSystem
                 int playerHealth = player.Health();
                 int enemyAttack = Enemy.Attack();
                 int playerScore = 0;
+                string type = player.GetType().Name;
 
                 DateTime jumptime = DateTime.Now;
                 DateTime landtime = DateTime.Now;
@@ -347,25 +320,51 @@ namespace PlayerRankingSystem
                     }
                     if (playerHealth <= 0)//the results
                     {
-                        Console.WriteLine("-------------------------------------------------");
-                        Console.WriteLine("Game over. You have been defeated by the enemy.");
-                        Console.WriteLine("-------------------------------------------------");
+                        Lost();
                         break;
                     }
                     else if (enemyHealth <= 0)
                     {
-                        Console.WriteLine("---------------------------------------------");
-                        Console.WriteLine("Congratulations! You have defeated the enemy.");
-                        Console.WriteLine("---------------------------------------------");
+                        Won();
                         break;
 
                     }
 
                 }
                 Console.WriteLine($"Your score is {playerScore}");
-                leaderboard[player] = playerScore;
+                SaveScore(playerName,playerScore,player);
+                return playerScore;
 
+            }
 
+            static Player CharacterChoice(string playerName)
+            {
+                Player player;
+
+                Console.WriteLine("Which character do you want to play?");
+                string choice;
+                do
+                {
+                    Console.WriteLine("Enter your choice (1,2 or 3): ");
+                    choice = Console.ReadLine();
+
+                }
+                while (string.IsNullOrWhiteSpace(choice) || choice != "1" && choice != "2" && choice != "3");
+
+                if (choice == "1")
+                {
+                    player = new Fairy(playerName, 2, 30);
+                }
+                else if (choice == "2")
+                {
+                    player = new Soldier(playerName, 2, 30);
+                }
+                else
+                {
+                    player = new OldMan(playerName, 2, 30);
+                }
+
+                return player;
             }
 
         }
@@ -379,14 +378,167 @@ namespace PlayerRankingSystem
                 Console.WriteLine($"{i + 1}. {characterlist[i].PlayerName} - Health: {characterlist[i].Health()} - Attack: {characterlist[i].Attack()}");
             }
         }
+
+        static string LogIn()
+        {
+            string playerName = null;
+            while (string.IsNullOrEmpty(playerName))
+            {
+                Console.WriteLine("Please name your player.");
+                playerName = Console.ReadLine().ToLower();
+
+                MySqlConnection connection = new MySqlConnection("Server=localhost;Database=leaderboard;Uid=root;Pwd=MySQLklmn583");
+                try
+                {
+                    connection.Open();
+                    string sql = "SELECT * FROM namepassword WHERE name = @name";
+                    MySqlCommand command = new MySqlCommand(sql, connection);
+                    command.Parameters.AddWithValue("@name", playerName);
+                    MySqlDataReader reader = command.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        Console.WriteLine("Please enter your password: ");
+                        string password = Console.ReadLine();
+                        if (password == reader["password"].ToString())
+                        {
+                            Console.WriteLine("True password.");
+                            break;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Unvalid password.");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        reader.Close();
+                        Console.WriteLine("Create a password then log in: ");
+                        string password = Console.ReadLine();
+                        string sqll = "INSERT INTO namepassword(name,password)" + "VALUES(@name, @password)";
+                        MySqlCommand cmd = new MySqlCommand(sqll, connection);
+                        cmd.Parameters.AddWithValue("@name", playerName);
+                        cmd.Parameters.AddWithValue("password", password);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return playerName;
+        }
+        static void SaveScore(string playerName, int playerScore, Player player)
+        {
+            string type = player.GetType().Name;
+
+            MySqlConnection con = new MySqlConnection("Server=localhost;DataBase=leaderboard;Uid=root;Pwd=MySQLklmn583");
+            try
+            {
+                con.Open();
+                string sqqll = "SELECT charactertype FROM leaderboard WHERE name = @name AND charactertype = @charactertype";
+                MySqlCommand commands = new MySqlCommand(sqqll, con);
+                commands.Parameters.AddWithValue("@name", playerName);
+                commands.Parameters.AddWithValue("@charactertype", type);
+                MySqlDataReader readers = commands.ExecuteReader();
+                if (readers.Read())
+                {
+                    readers.Close();
+                    string sqll = "SELECT score FROM leaderboard WHERE name = @name AND charactertype = @charactertype";
+                    MySqlCommand command = new MySqlCommand(sqll, con);
+                    command.Parameters.AddWithValue("@name", playerName);
+                    command.Parameters.AddWithValue("@charactertype", type);
+                    MySqlDataReader reader = command.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        int oldScore = Convert.ToInt32(reader["score"]);
+                        reader.Close();
+                        if (oldScore < playerScore)
+                        {
+                            string sql = "UPDATE leaderboard SET score = @score WHERE name = @name AND charactertype = @charactertype";
+                            MySqlCommand cmd = new MySqlCommand(sql, con);
+                            cmd.Parameters.AddWithValue("@name", playerName);
+                            cmd.Parameters.AddWithValue("@charactertype", type);
+                            cmd.Parameters.AddWithValue("@score", playerScore);
+                            cmd.ExecuteNonQuery();
+                            Console.WriteLine("Saved.");
+                        }
+                    }
+                    else
+                    {
+                        reader.Close();
+                        string sql = "UPDATE leaderboard SET score = @score WHERE name = @name AND charactertype = @charactertype";
+                        MySqlCommand cmd = new MySqlCommand(sql, con);
+                        cmd.Parameters.AddWithValue("@name", playerName);
+                        cmd.Parameters.AddWithValue("@charactertype", type);
+                        cmd.Parameters.AddWithValue("@score", playerScore);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                else
+                {
+                    readers.Close();
+                    string sqqlll = "INSERT INTO leaderboard(name, charactertype, score)" + "VALUES(@name, @charactertype, @score)";
+                    MySqlCommand commandd = new MySqlCommand(sqqlll, con);
+                    commandd.Parameters.AddWithValue("@name", playerName);
+                    commandd.Parameters.AddWithValue("@charactertype", type);
+                    commandd.Parameters.AddWithValue("@score", playerScore);
+                    commandd.ExecuteNonQuery();
+                    Console.WriteLine("Saved.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                con.Close();
+            }
+
+        }
+
+        static void Lost()
+        {
+            Console.WriteLine("-------------------------------------------------");
+            Console.WriteLine("Game over. You have been defeated by the enemy.");
+            Console.WriteLine("-------------------------------------------------");
+        }
+
+        static void Won()
+        {
+            Console.WriteLine("---------------------------------------------");
+            Console.WriteLine("Congratulations! You have defeated the enemy.");
+            Console.WriteLine("---------------------------------------------");
+        }
         static void Leaderboard()
         {
-            var sortedLeaderboard = leaderboard.OrderByDescending(player => player.Value);
-
-            for (int i = 0; i < leaderboard.Count; i++)
+            MySqlConnection connection = new MySqlConnection("Server=localhost;Database=leaderboard;Uid=root;Pwd=MySQLklmn583");
+            try
             {
-                var currentPlayer = sortedLeaderboard.ElementAt(i).Key;
-                Console.WriteLine($"{i + 1}. {currentPlayer.PlayerName} - {currentPlayer.GetType().Name} - Skor: {sortedLeaderboard.ElementAt(i).Value}");
+                connection.Open();
+                string sql = "SELECT * FROM leaderboard ORDER BY score DESC";
+                MySqlCommand command = new MySqlCommand(sql, connection);
+                MySqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader["name"] + " " + reader["charactertype"] + " " + reader["score"]);
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                connection.Close();
             }
 
         }
